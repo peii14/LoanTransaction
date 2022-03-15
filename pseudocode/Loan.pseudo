@@ -1,0 +1,15 @@
+function recommend(uint 8 score, address recommenderAddress) {
+    if (recomenderAddress != borrower) {
+        print "you can not recommend your own project"
+        return;
+    }
+    if( score > minimumRecemmendVallue && score <= 100) continue;
+    else return;
+    if(!recommenders(recommenderAddress)){
+        print "you have already recommended"
+        return
+    }
+     if( value >= collateral){
+         extraMoney = 
+     }
+}
