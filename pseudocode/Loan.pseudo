@@ -189,7 +189,7 @@ function getRecomenderWeightAndValue(){
         recommender = recommenderAddr[i];
         if (recommenders[recommender]) {
             ExponentialNoError.Exp memory recommendedAmount = 10 ** recommendedAmounts[recommender];
-            (,weights[i]) = recommendedAmount / 10 ** totalRecommendedAmount;
+            weights[i] = recommendedAmount / 10 ** totalRecommendedAmount;
             scores[i] = recommendedScore[recommender];
         }
     }
