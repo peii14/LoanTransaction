@@ -1,5 +1,4 @@
 function recommend(score, recommenderAddress) {
-    
     if (recomenderAddress != borrower) {
         print "you can not recommend your own project"
         return
@@ -74,24 +73,27 @@ function repay(){
     if(repaidAmount < returnAmount) continue
     else return
 
-    if(msg.value >= repaymentInstallment.mantissa) continue
-    else return
+    if(MoneyValue >= repaymentInstallment){
+        continue
+    }else{
+        return
+    } 
+    lastRepaymentDate = timestamp;
+    repaidAmount = repaidAmount + (moneyValue - extraMoney);
 
-    lastRepaymentDate = block.timestamp;
-    repaidAmount += (msg.value - extraMoney);
-
-    // LogBorrowerRepaymentInstallment(msg.sender, msg.value - extraMoney, block.timestamp);
     createBorrowerLog()
     if(repaidAmount >= returnAmount){
             // once the loan is finished, investors can ask for interest
             state = State.interestReturns;
-            LoanStateChanged(state, block.timestamp);
+            LoanStateChanged(state);
 
             // increase user's TScore after a successful loan project
-            if (borowerSocialScore- successfulLoanScoreIncrease <= 100)
+            if (borowerSocialScore- successfulLoanScoreIncrease <= 100){
                 updateBorrowerSocialScore()+ successfulLoanScoreIncrease;
-            else
+            }
+            else{
                 setBorrowerSocialScore(100)
+            }
     }
 }
 
@@ -100,52 +102,97 @@ function claimWithInterest() {
 
     if(lender == True){
         // Calculate the interest amount to return to the lender
-        returnInterestAmount =returnInterestAmount + ExponentialNoError.mul_ScalarTruncateAddUInt(
-            // multiply the amount by the interest rate
-            // SIMPLIFY
-            ExponentialNoError.div_(ExponentialNoError.Exp({ mantissa: interest*(100 - recommendersInterestRate)*1e18}), 10000),
-            investedAmounts[msg.sender],
-            investedAmounts[msg.sender]
-        );
-        investedAmounts[msg.sender] = 0;
+        // multiply the amount by the interest rate
+        returnInterestAmount += (((10 ** interest * (100 - recommendersInterestRate)*1e18) / 10000)*investedAmounts) + investedAmounts
     }
     if (recomender == True) {
          // Calculate the interest amount to return to the recommender
         if(state != State.fraud){
-            recommendedAmount = recommendedAmounts[msg.sender]
+            recommendedAmount = recommendedAmounts[senderAmount]
         }else{
-            // Multiply an ExponentialNoError.Exp by a scalar, then truncate to return an unsigned integer.
-            recomendedAmount = ExponentialNoError.mul_ScalarTruncate(
-                ExponentialNoError**{ mantissa: (totalRecommendedAmount - repaidAmount)}/ totalRecommendedAmount
-                , recommendedAmounts[msg.sender])
+            recomendedAmount = ((10**(totalRecommendedAmount - repaidAmount)) / totalRecommendedAmount) * recommendedAmounts;
         }
-
-        // Multiply an ExponentialNoError.Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
         // multiply the amount by the interest rate
-        returnInterestAmount += ExponentialNoError.mul_ScalarTruncateAddUInt(
-            10**{ mantissa: interest*recommendersInterestRate*1e18}/ 10000,
-            recommendedAmount,
-            recommendedAmount
-        );
-        recommendedAmounts[msg.sender] = 0;
-
+        returnInterestAmount += ((10 ** interest*recommendersInterestRate*1e18 / 10000) * recommendedAmount) +recommendedAmount
         
     }
-    if (returnInterestAmount > address(this).balance)
-        returnInterestAmount = address(this).balance;
+    if (returnInterestAmount > contractBalance)
+        returnInterestAmount = contractBalance;
 
-    if(address(this).balance >= returnInterestAmount) continue
-    else return
+    if(contractBalance >= returnInterestAmount){
+        continue
+    }else{
+        return
+    }
 
     // Transfer the return amount with interest to the lender.
-    payable(msg.sender).transfer(returnInterestAmount);
+    payable(Tosender).transfer(returnInterestAmount);
 
     // Log the transfer to lender.
-    LogLenderWithdrawal(msg.sender, returnInterestAmount, block.timestamp);
+    createLenderLog();
 
-    if(address(this).balance == 0){
-        LoanController(loanController).finishLoan(borrower);
-        this.destructLoan(payable(address(0)));
+    // Check if the contract balance is drawned.
+    if(contractBalance == 0){
+        destruct()
     }
+}
+function applyForLoan(){
+    if (user != address(0)) {
+        // The user not fraudulent
+        if(userFraudStatus == false){
+            continue
+        }else{
+            return
+        }
+        
+        if (usersActiveLoan() != address(0) && usersActiveLoan() == isExpiredAndNotFunded()) {         
+            destructActiveLoan()
+        } else {
+            // The user must not have any loan in progress or its loan is finished OR check if contract is at interest returns stage
+            if(userActiveLoan() == address(0) || userActiveLoan() == LoanStateInteresReturns ){
+                continue
+            }else{
+                return
+            }
+        }
+    } else {
+        addNewUser()
+    }
+
+    users.startNewCycle();
+    loanAddress = LoanFactory.createLoan()
+
+    usersSetActiveLoan(loanAddress);
+}
+
+function updateSocialRecomendationScore(){
+
+    for (i = 0; i < weights.length; i++) {
+        weightedScore = (weights[i]* scores[i])+ weightedScore;
+    }
+
+    if (loan.isNew() == true) {
+        // add a previous TScore
+        socialScore = ((10 ** loan.previousTScoreWeight()*1e18}) * userSocialRecommendationScore()) + socialScore;
+        // add a new recommender's voted TScore
+        socialScore = (((10 ** (100 - loan.previousTScoreWeight())*1e18) * weightedScore) + socialScore);
+        socialScore = socialScore / 100;
+    } else {
+        socialScore = weightedScore;
+    }
+
+    user.setSocialRecommendationScore(socialScore);
+    return user.getTScore();
+}
+function getRecomenderWeightAndValue(){
+    for (i = 0; i < recommendersCount; i++) {
+        recommender = recommenderAddr[i];
+        if (recommenders[recommender]) {
+            ExponentialNoError.Exp memory recommendedAmount = 10 ** recommendedAmounts[recommender];
+            (,weights[i]) = recommendedAmount / 10 ** totalRecommendedAmount;
+            scores[i] = recommendedScore[recommender];
+        }
+    }
+    return (weights, scores);
 }
 

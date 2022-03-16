@@ -1,3 +1,0 @@
-function applyForLoan(uint _requestedAmount, uint _repaymentsCount, string memory _tokenURI){
-    if(users[msg.sender] != User(add))
-}
