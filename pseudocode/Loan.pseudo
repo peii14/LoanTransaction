@@ -1,48 +1,45 @@
-function recommend(uint 8 score, address recommenderAddress) {
+function recommend(score, recommenderAddress) {
+    
     if (recomenderAddress != borrower) {
         print "you can not recommend your own project"
-        return;
+        return
     }
-    if( score > minimumRecemmendVallue && score <= 100) continue;
-    else return;
+    
+    if( score > minimumRecemmendVallue && score <= 100) 
+        continue;
+    else 
+        return;
     if(!recommenders(recommenderAddress)){
         print "you have already recommended"
         return
     }
-    if( msg.value >= collateral){
-         extraMoney = msg.value - collateral
-         if( collateral == msg.value - extraMoney) continue
-         else return
-
-         if(extraMoney <= msg.value) continue
-         else return
-
+    if( moneyValue >= collateral){
+         extraMoney = moneyValue - collateral
+         if( collateral == moneyValue - extraMoney) 
+            continue
+         else 
+            return
+         if(extraMoney <= moneyValue) 
+            continue
+         else 
+            return
          if (extraMoney > 0) {
             // return extra money to the sender
-            payable(recommenderAddress).transfer(extraMoney);
-            ExtraAmountRefunded(recommenderAddress, extraMoney, block.timestamp);
+            refundExtraMoney()
         }
      }else{
-        collateral -= (msg.value - extraMoney);
+        collateral = collateral - (moneyValue - extraMoney);
      }
 
-    uint recommendedAmount = msg.value - extraMoney;
-    totalRecommendedAmount += recommendedAmount;
-    recommenders[recommenderAddress] = true;
-    recommendedAmounts[recommenderAddress] = recommendedAmount;
-    recommendedScore[recommenderAddress] = score;
-
-    recommenderAddr.push(recommenderAddress);
-    recommendersCount++;
-
-    (weights, scores) = TScoreController.getRecommendersWeightsAndValue(recommendersCount, recommenderAddr, recommenders, recommendedAmounts, totalRecommendedAmount, recommendedScore);
-    TScoreController.updateSocialRecommendationScore(address(this), borrowerUser, 0, 0,weights, scores);
-
+    recommendedAmount = moneyValue - extraMoney;
+    (weights, scores) = getRecomendationWeightAndScore()
+    updateSocialRecomendation()
     isNew = false;
-
-    Recommended(recommenderAddress, recommendedAmount, block.timestamp);
-    if (collateral == 0)
-        state = State.investment;
+    //  
+    Recommended(recommenderAddress, recommendedAmount);
+    if (collateral == 0){
+        updateInvestmentState()
+    }
 }
 
 function Lend(address investorAddress){
@@ -50,30 +47,27 @@ function Lend(address investorAddress){
         print "you can not invest in your own project"
         return
     }
-    if(msg.value > requestAmount){
-        extraMoney = address(this).balance - requestAmount
-        if(requestAmount == addres(this).balance - extraMoney){
+    if(moneyValue > requestAmount){
+        extraMoney = userBalance - requestAmount
+        if(requestAmount == userBalance - extraMoney){
             continue
         }else return
 
-        if(extraMoney <= msg.value){
+        if(extraMoney <= moneyValue){
             continue
         }else return
 
         if (extraMoney > 0) {
-            payable(investorAddress).transfer(extraMoney);
-            ExtraAmountRefunded(investorAddress, extraMoney, block.timestamp);
+            refundExtraMoney()
         }
     }
-    totalInvestedAmoubnt += msg.value = extraMoney
-    investorsCount++;
-    lenders[investorAddress] = true;
-    investedAmounts[investorAddress] =msg.value - extraMoney);
+    totalInvestedAmount = totalInvestedAmount + moneyValue - extraMoney
+    investedAmounts[investorAddress] = moneyValue - extraMoney);
 
-    Invested(investorAddress,msg.value -extraMoney), block.timestamp);
+    Invested(investorAddress,moneyValue - extraMoney);
 
     if (collateral == 0 && totalInvestedAmount == requestedAmount)
-        state = State.withdrawable;
+        state = ableToWithdraw();
 }
 
 function repay(){
@@ -86,36 +80,36 @@ function repay(){
     lastRepaymentDate = block.timestamp;
     repaidAmount += (msg.value - extraMoney);
 
-    LogBorrowerRepaymentInstallment(msg.sender, msg.value - extraMoney, block.timestamp);
-    if(repaidAmount >- returnAmount){
-        LogBorrowerRepaymentFinished(msg.sender, block.timestamp);
-
+    // LogBorrowerRepaymentInstallment(msg.sender, msg.value - extraMoney, block.timestamp);
+    createBorrowerLog()
+    if(repaidAmount >= returnAmount){
             // once the loan is finished, investors can ask for interest
             state = State.interestReturns;
             LoanStateChanged(state, block.timestamp);
 
             // increase user's TScore after a successful loan project
-            if (User(borrowerUser).getSocialRecommendationScore() - successfulLoanScoreIncrease <= 100)
-                User(borrowerUser).setSocialRecommendationScore(User(borrowerUser).getSocialRecommendationScore() + successfulLoanScoreIncrease);
+            if (borowerSocialScore- successfulLoanScoreIncrease <= 100)
+                updateBorrowerSocialScore()+ successfulLoanScoreIncrease;
             else
-                User(borrowerUser).setSocialRecommendationScore(100);
+                setBorrowerSocialScore(100)
     }
 }
 
 function claimWithInterest() {
     checkFraud();
 
-    if(lenders[msg.sender]){
+    if(lender == True){
         // Calculate the interest amount to return to the lender
-        returnInterestAmount += ExponentialNoError.mul_ScalarTruncateAddUInt(
+        returnInterestAmount =returnInterestAmount + ExponentialNoError.mul_ScalarTruncateAddUInt(
             // multiply the amount by the interest rate
+            // SIMPLIFY
             ExponentialNoError.div_(ExponentialNoError.Exp({ mantissa: interest*(100 - recommendersInterestRate)*1e18}), 10000),
             investedAmounts[msg.sender],
             investedAmounts[msg.sender]
         );
         investedAmounts[msg.sender] = 0;
     }
-    if (recommenders[msg.sender]) {
+    if (recomender == True) {
          // Calculate the interest amount to return to the recommender
         if(state != State.fraud){
             recommendedAmount = recommendedAmounts[msg.sender]
@@ -148,7 +142,6 @@ function claimWithInterest() {
 
     // Log the transfer to lender.
     LogLenderWithdrawal(msg.sender, returnInterestAmount, block.timestamp);
-
 
     if(address(this).balance == 0){
         LoanController(loanController).finishLoan(borrower);
