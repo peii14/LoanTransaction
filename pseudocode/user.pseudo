@@ -1,0 +1,169 @@
+
+// get wallet address
+if(metaMaskExist == True)
+    walletAddress = metaMaskWallet
+else
+    print 'Please create your wallet'
+    return
+
+setMinimumAge(18)
+setMaximumAge(88)
+setMaritalOption([
+    'Married',
+    'Single',
+    'Divorced',
+    'Undefined'
+])
+setEducationOption([
+    'University Degree', 
+    'Professional course',
+    'highschool',
+    'basic 9y',
+    'basic 6y',
+    'basic 4y',
+    'illterate',
+    'unknown'
+])
+setJobOption([
+    'Entrepreneur',
+    'Self Employed',
+    'Management',
+    'admin',
+    'retired',
+    'technician',
+    'services',
+    'blue-collars',
+    'housemaid',
+    'student',
+    'Unemployed',
+    'unknown'
+])
+setHousingOption([
+    'yes',
+    'no',
+    'unknown'
+])
+setLoanOption([
+    'yes',
+    'no',
+    'unknown'
+])
+
+// take user age input
+Input age
+
+if(age >=18 && age<=25)
+    ageScore = 65
+else if(age > 25 && age<=29)
+    ageScore = 70
+else if(age >29 && age<=34)
+    ageScore = 100
+else if(age >34 && age<= 39)
+    ageScore = 95
+else if(age >39 && age<= 44)
+    ageScore = 90
+else if(age > 44 && age<= 49)
+    ageScore = 85
+else if(age > 49 && age<=56)
+    ageScore = 80
+else if(age >56 && age<= 60)
+    ageScore = 60
+else if(age > 60 && age<= 70)
+    ageScore = 55
+else if(age > 70 && age<= 88)
+    ageScore = 50
+
+//take user marital status
+Input Marital
+
+if(Marital == 'Married')
+    maritalScore = 100
+else if(Marital == 'Single')
+    maritalScore = 90
+else if(Marital == 'Divorced')
+    maritalScore = 70
+else if(Marital == 'Undefined')
+    maritalScore = 50
+
+// take user education
+Input Education
+
+if(Education == 'University Degree')
+    eduScore = 100
+else if(Education == 'Professional course')
+    eduScore = 92
+else if(Education == 'highschool')
+    eduScore = 85
+else if(Education == 'basic 9y')
+    eduScore = 78
+else if(Education == 'basic 6y')
+    eduScore = 71
+else if(Education == 'basic 4y')
+    eduScore = 64
+else if(Education == 'illiterate')
+    eduScore = 57
+else if(Education == 'unknown')
+    eduScore = 50
+// take use job
+Input Job
+
+if(Job == 'Entrepreneur')
+    jobScore = 100
+else if(Job == 'Self Employed')
+    jobScore = 95
+else if(Job == 'Management')
+    jobScore = 90
+else if(Job == 'admin')
+    jobScore = 85
+else if(Job == 'retired')
+    jobScore = 80
+else if(Job == 'technician')
+    jobScore = 75
+else if(Job == 'services')
+    jobScore = 70
+else if(Job == 'blue-collars')
+    jobScore = 65
+else if(Job == 'housemaid')
+    jobScore = 60
+else if(Job == 'student')
+    jobScore = 55
+else if(Job == 'Unemployed')
+    jobScore = 52
+else if(Job == 'unknown')
+    jobScore = 50
+
+// take Housing status
+Input HousingStatus
+
+if(HousingStatus == 'yes')
+    housingScore = 100
+else if(HousingStatus == 'No')
+    housingScore = 55
+else if(HousingStatus == 'unknown')
+    housingScore = 50
+
+
+// take Loan Status
+Input LoanStatus
+if(LoanStatus == 'yes')
+    loanScore = 100
+else if(LoanStatus == 'No')
+    loanScore = 55
+else if(LoanStatus == 'unknown')
+    loanScore = 50
+
+// Weighted
+
+profile = (ageScore * 0.25) + (maritalScore * 0.2) + (eduScore * 0.45)
+activity  = jobScore
+loanRisk = (housingScore * 0.75) + (loanScore * 0.25)
+
+// sent
+if(register.button.clicked())
+    sentNewUser(walletAddress,profile,activity,loanRisk)
+
+
+
+
+
+
