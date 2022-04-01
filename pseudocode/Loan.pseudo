@@ -187,7 +187,7 @@ function updateSocialRecomendationScore(){
 function getRecomenderWeightAndValue(){
     for (i = 0; i < recommendersCount; i++) {
         recommender = recommenderAddr[i];
-        if (recommenders[recommender]) {
+        if (recommenders[recommender]){
             ExponentialNoError.Exp memory recommendedAmount = 10 ** recommendedAmounts[recommender];
             weights[i] = recommendedAmount / 10 ** totalRecommendedAmount;
             scores[i] = recommendedScore[recommender];

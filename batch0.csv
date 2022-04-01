@@ -1,0 +1,4 @@
+projectId,borrowerContractAddress,mnemonic,typeOfTx,repaymentsCount,value,score,profileScore,loanRiskScore,activityScore
+3, , , , , , ,80,100,65
+4, , , , , , ,78,66,70
+5, , , , , , ,72,100,70
